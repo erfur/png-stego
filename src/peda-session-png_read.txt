@@ -1,0 +1,2 @@
+break /home/erfur/erfur/Lab/C/png_stego/src/png.c:409
+
