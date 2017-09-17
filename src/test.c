@@ -4,6 +4,13 @@
 
 int main(int argc, char **argv)
 {
+	if(argc < 2)
+	{
+		printf("png-read - Read png files and write them back intact.\n");
+		printf("Usage: ./png_read $inputFile $outputFile\n");
+		return EXIT_SUCCESS;
+	}
+
 	pngStruct f;
 	pngInit(&f);
 
