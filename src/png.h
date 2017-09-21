@@ -36,10 +36,12 @@ typedef struct pngStruct
 	int width, height;
 	uint8_t bitDepth, colorType;
 	//Image
-	uint8_t *imgData;
-	uint8_t *imgDataInfl;
-	unsigned long int imgLen;
-	unsigned long int imgInflLen;
+	uint8_t *imgDataCompressed;
+	uint8_t *imgDataDecompressed;
+	uint8_t *imgDataFiltered;
+	unsigned long int imgCompressedLen;
+	unsigned long int imgDecompressedLen;
+	unsigned long int imgFilteredLen;
 }pngStruct;
 
 void pngInit(pngStruct *);
@@ -53,8 +55,8 @@ void checkSignature(pngStruct *);
 void listChunks(pngStruct *);
 void readIHDR(pngStruct *);
 void readIDAT(pngStruct *);
-void inf(pngStruct *);
-void def(pngStruct *);
+void decompressBuffer(pngStruct *);
+void compressBuffer(pngStruct *);
 void listScanlines(pngStruct *);
 void unfilter(pngStruct *);
 void filter(pngStruct *);
