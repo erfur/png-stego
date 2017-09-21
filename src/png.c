@@ -54,8 +54,13 @@ void pngOpen(pngStruct *f, char *inFile)
 	listChunks(f);
 	readIHDR(f);
 	readIDAT(f);
+
+	/* decompress imgDataCompressed into imgDataDecompressed */
 	decompressBuffer(f);
+
+	/* unfilter data in imgDataDecompressed */
 	unfilter(f);
+
 //	listScanlines(&f);
 }
 
@@ -70,9 +75,16 @@ void pngWrite(pngStruct *f, char *outFile)
 	if(!(f->out = fopen(f->outName, "w")))
 		fatal("Cannot create the output file!");
 
+	/* filter data in imgDataDecompressed and into imgDataFiltered */
 	filter(f);
+
+	/* compress data in imgDataFiltered into imgDataCompressed */
 	compressBuffer(f);
+
+	/* write final data in imgDataCompressed to output file */
 	writeBack(f);
+
+	/* close output file */
 	fclose(f->out);
 }
 
@@ -542,7 +554,9 @@ void filter(pngStruct *f)
 		/* unfilter pixels */
 		switch(filterMethod)
 		{
-			/* Method 0: no filtering */
+			/* Method 0: no filtering
+			 * copy the entire line to imgDataFiltered
+			 */
 			case 0:
 				memcpy(&f->imgDataFiltered[index], &f->imgDataDecompressed[index], lineSize);
 				break;
