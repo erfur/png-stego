@@ -6,7 +6,7 @@
 #include <zlib.h>
 #include "crc.h"
 
-#define CHUNKLIMIT 1024 // Read no more than 1024 chunks
+#define CHUNKLIMIT 8192 // Read no more than 1024 chunks
 #define IMGLIMIT 104857600L // 100MB
 
 // Data structure to hold the
@@ -27,14 +27,17 @@ typedef struct pngStruct
 	chunkStruct chunklist[CHUNKLIMIT];
 	chunkStruct *IHDR, *PLTE, *IDAT, *IEND;
 	int IDATcount;
+	
 	//File
 	FILE *file;
 	FILE *out;
 	char inName[1024];
 	char outName[1024];
+	
 	//Image Properties
 	int width, height;
 	uint8_t bitDepth, colorType;
+	
 	//Image
 	uint8_t *imgDataCompressed;
 	uint8_t *imgDataDecompressed;
