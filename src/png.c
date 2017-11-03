@@ -20,13 +20,13 @@ void pngInit(pngStruct *f)
 	f->IDATcount = 0;
 
 	f->imgCompressedLen = 0;
-	f->imgDecompressedLen = IMGLIMIT;
-	f->imgFilteredLen = IMGLIMIT;
+	f->imgDecompressedLen = 0;
+	f->imgFilteredLen = 0;
 
 	/* dynamically allocate image buffers */
-	f->imgDataCompressed = malloc(IMGLIMIT);
-	f->imgDataDecompressed = malloc(IMGLIMIT);
-	f->imgDataFiltered = malloc(IMGLIMIT);
+	f->imgDataCompressed = NULL;
+	f->imgDataDecompressed = NULL;
+	f->imgDataFiltered = NULL;
 }
 
 
@@ -53,6 +53,20 @@ void pngOpen(pngStruct *f, char *inFile)
 	checkSignature(f);
 	listChunks(f);
 	readIHDR(f);
+
+	/* calculate pixel and image size */
+	f->pixelSize = sampleCount[f->colorType]*f->bitDepth/8;
+	f->totalSize = f->height * (f->width * f->pixelSize + 1);
+
+	/* allocate buffers */
+	f->imgDataCompressed = calloc(f->totalSize, 1);
+	f->imgDataDecompressed = calloc(f->totalSize, 1);
+	f->imgDataFiltered = calloc(f->totalSize, 1);
+
+	/* set new sizes */
+	f->imgDecompressedLen = f->totalSize;
+	f->imgFilteredLen = f->totalSize;
+
 	readIDAT(f);
 
 	/* decompress imgDataCompressed into imgDataDecompressed */
@@ -90,7 +104,7 @@ void pngWrite(pngStruct *f, char *outFile)
 
 
 /* Print a fatal error and terminate the program */
-void fatal(char *errStr)
+void fatal(const char *errStr)
 {
 	fprintf(stderr, "[FATAL] %s\n", errStr);
 	exit(EXIT_FAILURE);
@@ -289,7 +303,7 @@ void decompressBuffer(pngStruct *f)
 	/* expected output size can be calculated with image properties */
 	int expectedSize = f->height + f->width * f->height * (f->bitDepth/8) * sampleCount[f->colorType];
 
-	printf("Done. Expected size: %d, Output length: %d, Return value: %d\n", expectedSize, f->imgDecompressedLen, ret);
+	printf("Done. Expected size: %d, Output length: %lu, Return value: %d\n", expectedSize, f->imgDecompressedLen, ret);
 }
 
 
@@ -301,7 +315,7 @@ void compressBuffer(pngStruct *f)
 	printf("Compressing the image into a zLib stream...");
 
 	/* create a variable for available space in the target buffer */
-	int len = IMGLIMIT;
+	int len = f->totalSize;
 
 	/* compress imgDataDecompressed into imgData */
 	int ret = compress(f->imgDataCompressed, (uLongf *)&len, f->imgDataFiltered, f->imgFilteredLen);
@@ -309,7 +323,7 @@ void compressBuffer(pngStruct *f)
 	/* get compressed data size */
 	f->imgCompressedLen = len;
 
-	printf("Done. Output length: %d, Return value: %d\n", f->imgCompressedLen, ret);
+	printf("Done. Output length: %lu, Return value: %d\n", f->imgCompressedLen, ret);
 }
 
 
@@ -358,7 +372,7 @@ void unfilter(pngStruct *f)
 	uint8_t x, a, b, c;
 
 	/* variables for paethPredictor() function */
-	uint8_t rx, pr;
+	uint8_t pr;
 	int32_t p, pa, pb, pc;
 
 	/* set everything to zero */
@@ -373,7 +387,6 @@ void unfilter(pngStruct *f)
 	/* iterate through rows with i and pixels with j */
 	int i, j, index;
 	uint8_t filterMethod;
-	int callCount=0;
 	for(i=0; i<f->height; i++)
 	{
 		/* calculate line index */
@@ -524,7 +537,7 @@ void filter(pngStruct *f)
 	uint8_t x, a, b, c;
 
 	/* variables for paethPredictor() function */
-	uint8_t rx, pr;
+	uint8_t pr;
 	int32_t p, pa, pb, pc;
 
 	/* set everything to zero */
@@ -539,7 +552,6 @@ void filter(pngStruct *f)
 	/* iterate through rows with i and pixels with j */
 	int i, j, index;
 	uint8_t filterMethod;
-	int callCount=0;
 	for(i=0; i<f->height; i++)
 	{
 		/* calculate line index */
@@ -688,13 +700,13 @@ void writeBack(pngStruct *f)
 	printf("\nCreating the output file...\n");
 
 	/* create an array to hold and calculate crc of chunk data */
-	uint8_t crcBuffer[4 + 8192];
+	uint8_t crcBuffer[4 + 8192] = {0};
 	/* first four bytes will be "IDAT" */
 	uint8_t *buffer = crcBuffer + 4;
 
 	/* get IDAT chunk position on input file */
 	int pos = f->IDAT->pos;
-	int bytesLeft = pos, bytesToWrite;
+	int bytesLeft = pos, bytesToWrite = 0;
 
 	printf("Writing the segments before IDAT chunks...");
 
@@ -714,7 +726,7 @@ void writeBack(pngStruct *f)
 
 	bytesLeft = f->imgCompressedLen;
 	uint8_t *bufferPtr = f->imgDataCompressed;
-	uint32_t len, crcVal;
+	uint32_t len = 0, crcVal = 0;
 
 	/* set chunkType */
 	strncpy(crcBuffer, f->IDAT->type, 4);
@@ -756,7 +768,7 @@ void writeBack(pngStruct *f)
 	fseek(f->file, pos, SEEK_SET);
 
 	/* write 8192 bytes at a time */
-	while(bytesToWrite = fread(buffer, sizeof(uint8_t), 8192, f->file))
+	while((bytesToWrite = fread(buffer, sizeof(uint8_t), 8192, f->file)))
 		fwrite(buffer, sizeof(uint8_t), bytesToWrite, f->out);
 
 	printf("Done.\n");

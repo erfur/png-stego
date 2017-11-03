@@ -1,2 +1,2 @@
 # png-stego
-A tool to apply steganography on .png files
+Apply steganography on .png files

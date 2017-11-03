@@ -7,7 +7,6 @@
 #include "crc.h"
 
 #define CHUNKLIMIT 8192 // Read no more than 1024 chunks
-#define IMGLIMIT 104857600L // 100MB
 
 // Data structure to hold the
 // chunk info and position in the file
@@ -27,17 +26,19 @@ typedef struct pngStruct
 	chunkStruct chunklist[CHUNKLIMIT];
 	chunkStruct *IHDR, *PLTE, *IDAT, *IEND;
 	int IDATcount;
-	
+
 	//File
 	FILE *file;
 	FILE *out;
 	char inName[1024];
 	char outName[1024];
-	
+
 	//Image Properties
 	int width, height;
 	uint8_t bitDepth, colorType;
-	
+	int pixelSize;
+	int totalSize;
+
 	//Image
 	uint8_t *imgDataCompressed;
 	uint8_t *imgDataDecompressed;
@@ -53,7 +54,7 @@ void pngTerm(pngStruct *);
 void pngOpen(pngStruct *, char *);
 void pngWrite(pngStruct *, char *);
 
-void fatal(char *err_str);
+void fatal(const char *err_str);
 void checkSignature(pngStruct *);
 void listChunks(pngStruct *);
 void readIHDR(pngStruct *);
