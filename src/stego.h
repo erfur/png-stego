@@ -26,7 +26,7 @@ void stegoInit(stegoStruct *);
 void stegoTerm(stegoStruct *);
 
 void stegoEmbed(stegoStruct *, int, pngStruct *, const char *);
-void stegoExtract(stegoStruct *, int, const char *);
+void stegoExtract(stegoStruct *, int, pngStruct *, const char *);
 
 /* embed operations */
 int getData(stegoStruct *, FILE *);

@@ -1,4 +1,4 @@
-TARGET ?= png_read
+TARGET ?= png-stego
 SRC_DIRS ?= ./src
 SAMPLES_DIR ?= samples
 

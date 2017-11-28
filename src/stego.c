@@ -140,18 +140,20 @@ int injectData(stegoStruct *s)
 	{
 		if(pos%s->p->lineSize == 0)
 			pos++;
-//		printf("0x%hhx -> ", s->p->imgDataDecompressed[i]);
-		s->p->imgDataDecompressed[pos] &= !(unsigned char)(pow(2,s->bitDepth)-1);
+		s->p->imgDataDecompressed[pos] &= 0xff - (int)pow(2, s->bitDepth) + 1;
+//		printf("0x%hhx x ", s->p->imgDataDecompressed[pos]);
+//		printf("maskData 0x%hhx ->", s->maskData[i]);
 		s->p->imgDataDecompressed[pos] |= s->maskData[i];
-//		printf("[injectData]0x%hhx\n", s->maskData[i]);
+//		printf("[injectData]0x%hhx\n", s->p->imgDataDecompressed[pos]);
 	}
 //	printf("[injectData] %d bytes injected\n", i);
 	return i;
 }
 
-void stegoExtract(stegoStruct *s, int bitD, const char *outFile)
+void stegoExtract(stegoStruct *s, int bitD, pngStruct *p, const char *outFile)
 {
 	stegoInit(s);
+	s->p = p;
 	checkBitLen(bitD);
 	s->bitDepth = bitD;
 	FILE *f = fopen(outFile, "wb");
