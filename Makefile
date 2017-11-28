@@ -16,7 +16,7 @@ debug:	$(TARGET)
 	gdb $(TARGET)
 	
 test:
-	cd samples && for file in $$(ls *.png); \
+	cd $(SAMPLES_DIR) && for file in $$(ls *.png); \
 	do \
 		../$(TARGET) $$file ../output/$$file; \
 	done
