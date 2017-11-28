@@ -3,7 +3,7 @@ SRC_DIRS ?= ./src
 SAMPLES_DIR ?= samples
 
 SYMBOLS := -g
-LIBS := -lz
+LIBS := -lz -lm
 SRCS := $(shell find $(SRC_DIRS) -name *.c)
 
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)

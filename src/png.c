@@ -10,7 +10,7 @@
 int sampleCount[7] = {1, 0, 3, 0, 2, 0, 4};
 
 /* Signature byte sequence for .png files */
-char signature[8] = {137, 80, 78, 71, 13, 10, 26, 10};
+unsigned char signature[8] = {137, 80, 78, 71, 13, 10, 26, 10};
 
 
 /* Initialize pngStruct */
@@ -56,12 +56,13 @@ void pngOpen(pngStruct *f, char *inFile)
 
 	/* calculate pixel and image size */
 	f->pixelSize = sampleCount[f->colorType]*f->bitDepth/8;
-	f->totalSize = f->height * (f->width * f->pixelSize + 1);
+	f->lineSize = f->pixelSize * f->width + 1;
+	f->totalSize = f->height * f->lineSize;
 
 	/* allocate buffers */
-	f->imgDataCompressed = calloc(f->totalSize, 1);
-	f->imgDataDecompressed = calloc(f->totalSize, 1);
-	f->imgDataFiltered = calloc(f->totalSize, 1);
+	f->imgDataCompressed = (uint8_t *)malloc(f->totalSize);
+	f->imgDataDecompressed = (uint8_t *)malloc(f->totalSize);
+	f->imgDataFiltered = (uint8_t *)malloc(f->totalSize);
 
 	/* set new sizes */
 	f->imgDecompressedLen = f->totalSize;

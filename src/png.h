@@ -21,7 +21,7 @@ typedef struct chunkStruct
 // Data structure to hold the file info
 typedef struct pngStruct
 {
-	//Chunks/
+	//Chunks
 	int ccount;
 	chunkStruct chunklist[CHUNKLIMIT];
 	chunkStruct *IHDR, *PLTE, *IDAT, *IEND;
@@ -37,6 +37,7 @@ typedef struct pngStruct
 	int width, height;
 	uint8_t bitDepth, colorType;
 	int pixelSize;
+	int lineSize;
 	int totalSize;
 
 	//Image
